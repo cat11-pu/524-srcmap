@@ -1,0 +1,68 @@
+{
+  "source": "// 旧名 deinterface 与 deinterfacer 只差一个字母（v0 遗留）\npackage junocfg\n\nimport (\n\t\"fmt\"\n\t\"reflect\"\n)\n\n// Settings 覆盖 settingsMap 与 path 两处旧叫法   \r\ntype Settings = map[string]interface{}\n\nfunc deinterface(data map[string]interface{}) map[string]interface{} {\n\treturn deinterfacer(data).(map[string]interface{})\n}\n\nfunc deinterfacer(data interface{}) interface{} {\n\tvalue := reflect.ValueOf(data)\n\tswitch value.Kind() {\n\tcase reflect.Map:\n\t\tresult := make(map[string]interface{})\n\t\tfor _, k := range value.MapKeys() {\n\t\t\tresult[fmt.Sprintf(\"%v\", k)] = deinterfacer(value.MapIndex(k).Interface())\n\t\t}\n\t\treturn result\n\tcase reflect.Slice:\n\t\tresult := make([]interface{}, value.Len())\n\t\tfor i := 0; i < value.Len(); i++ {\n\t\t\tresult[i] = deinterfacer(value.Index(i).Interface())\n\t\t}\n\t\treturn result\n\tdefault:\n\t\treturn data\n\t}\n}\n\nfunc setValue(src map[string]interface{}, path []string, value interface{}) error {\n\tptr := src\n\tfor i, key := range path {\n\t\tv, ok := ptr[key]\n\t\tif !ok {\n\t\t\tptr[key] = map[string]interface{}{}\n\t\t\tv, ok = ptr[key]\n\t\t}\n\t\tif i != len(path)-1 {\n\t\t\tvalue := reflect.ValueOf(v)\n\t\t\tif value.Kind() != reflect.Map {\n\t\t\t\tptr[key] = map[string]interface{}{}\n\t\t\t}\n\t\t\tif ptr, ok = ptr[key].(map[string]interface{}); !ok {\n\t\t\t\treturn fmt.Errorf(\"ptr 与 walk 都不该被字符串盯上: %v\", key)\n\t\t\t}\n\t\t\tcontinue\n\t\t}\n\t\tptr[key] = value\n\t\tbreak\n\t}\n\treturn nil\n}\n\nfunc walk(data map[string]interface{}) (ItemArray, error) {\n\tresult := ItemArray{}\n\treturn result, nil\n}",
+  "mappings": [
+    {
+      "old": "deinterfacer",
+      "new": "flattenKeys"
+    },
+    {
+      "old": "flattenKeys",
+      "new": "flattenNamed"
+    },
+    {
+      "old": "flattenNamed",
+      "new": "flatten"
+    },
+    {
+      "old": "ptr",
+      "new": "cursor"
+    },
+    {
+      "old": "setValue",
+      "new": "assignAt"
+    },
+    {
+      "old": "path",
+      "new": "assignAt"
+    },
+    {
+      "old": "walk",
+      "new": "traverse"
+    },
+    {
+      "old": "traverse",
+      "new": "walk"
+    },
+    {
+      "old": "key",
+      "new": "key"
+    },
+    {
+      "old": "result",
+      "new": "merged"
+    },
+    {
+      "old": "data",
+      "new": "data-1"
+    },
+    {
+      "old": "deinterface",
+      "new": "Settings"
+    },
+    {
+      "old": "value",
+      "new": "val"
+    },
+    {
+      "old": "value",
+      "new": "v2"
+    }
+  ],
+  "options": {
+    "only_exported": false,
+    "skip_comments": true,
+    "skip_strings": true,
+    "chain_closure": true,
+    "on_cycle": "reject"
+  }
+}
